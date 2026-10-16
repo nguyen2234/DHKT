@@ -10,7 +10,7 @@ cd /d "%PROJECT_DIR%"
 
 echo [1/3] Biên dịch React Frontend (Vite + Tailwind v4)...
 cd frontend
-call bun run build
+where.exe bun >nul 2>nul && (call bun run build) || (call npm run build)
 if %errorlevel% neq 0 (
     echo [LỖI] Không thể build React frontend. Vui lòng kiểm tra lại lỗi trên.
     pause
