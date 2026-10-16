@@ -27,3 +27,8 @@ venv/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Frontend & Dependencies
+node_modules/
+*.log
+
