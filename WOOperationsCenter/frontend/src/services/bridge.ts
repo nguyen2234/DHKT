@@ -394,6 +394,116 @@ class BridgeService {
     return false;
   }
 
+  public async copyCustomHtmlAndText(text: string, html: string): Promise<boolean> {
+    await this.init();
+    if (this.pyBridge && this.pyBridge.copyCustomHtmlAndText) {
+      return await new Promise((res) => this.pyBridge.copyCustomHtmlAndText(text, html, res));
+    }
+    if (navigator.clipboard) {
+      try {
+        const textBlob = new Blob([text], { type: "text/plain" });
+        const htmlBlob = new Blob([html], { type: "text/html" });
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/plain": textBlob,
+            "text/html": htmlBlob
+          })
+        ]);
+        return true;
+      } catch {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public async copyImageFromBase64(base64Str: string): Promise<boolean> {
+    await this.init();
+    if (this.pyBridge && this.pyBridge.copyImageFromBase64) {
+      return await new Promise((res) => this.pyBridge.copyImageFromBase64(base64Str, res));
+    }
+    if (navigator.clipboard && typeof ClipboardItem !== "undefined") {
+      try {
+        let cleanBase64 = base64Str;
+        if (cleanBase64.includes(",")) {
+          cleanBase64 = cleanBase64.split(",")[1];
+        }
+        const byteCharacters = atob(cleanBase64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: "image/png" });
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        return true;
+      } catch (e) {
+        console.warn("Web image clipboard fallback failed:", e);
+      }
+    }
+    return false;
+  }
+
+  public async getExcelSheetNames(filePath: string): Promise<{ success: boolean; sheets: string[]; error?: string }> {
+    await this.init();
+    if (this.pyBridge && this.pyBridge.getExcelSheetNames) {
+      const resStr: string = await new Promise((res) => this.pyBridge.getExcelSheetNames(filePath, res));
+      return JSON.parse(resStr);
+    }
+    return {
+      success: true,
+      sheets: ["DCU", "DDG", "KLN", "MXN", "NLC", "QPG", "QLU", "QHP", "TKY", "THU", "VPU", "VTG", "TDG", "YTH"]
+    };
+  }
+
+  public async parseExcelRange(filePath: string, sheetName: string, rangeStr: string): Promise<{ success: boolean; data?: any; error?: string }> {
+    await this.init();
+    if (this.pyBridge && this.pyBridge.parseExcelRange) {
+      const resStr: string = await new Promise((res) => this.pyBridge.parseExcelRange(filePath, sheetName, rangeStr, res));
+      return JSON.parse(resStr);
+    }
+    return {
+      success: true,
+      data: {
+        sheet_name: sheetName,
+        range_str: rangeStr || "A1:H20",
+        total_rows: 20,
+        total_cols: 8,
+        preview_rows: [],
+        html_table: "<table border='1'><tr><td>Sample Table</td></tr></table>",
+        tsv_text: "Sample Table",
+        plain_text: "Sample Table"
+      }
+    };
+  }
+
+  public async copyExcelRange(filePath: string, sheetName: string, rangeStr: string, copyMode: "html" | "tsv" | "text"): Promise<boolean> {
+    await this.init();
+    if (this.pyBridge && this.pyBridge.copyExcelRange) {
+      return await new Promise((res) => this.pyBridge.copyExcelRange(filePath, sheetName, rangeStr, copyMode, res));
+    }
+    return true;
+  }
+
+  public async openFile(filePath: string): Promise<boolean> {
+    await this.init();
+    if (this.pyBridge && this.pyBridge.openFile) {
+      return await new Promise((res) => this.pyBridge.openFile(filePath, res));
+    }
+    console.log("[Bridge Mock] openFile:", filePath);
+    return true;
+  }
+
+  public async openFolder(folderPath: string): Promise<boolean> {
+    await this.init();
+    if (this.pyBridge && this.pyBridge.openFolder) {
+      return await new Promise((res) => this.pyBridge.openFolder(folderPath, res));
+    }
+    console.log("[Bridge Mock] openFolder:", folderPath);
+    return true;
+  }
+
   public async exportReport(exportType: string, params: any = {}): Promise<{ success: boolean; output_path?: string; output_paths?: string[]; error?: string }> {
     await this.init();
     if (this.pyBridge && this.pyBridge.exportReport) {

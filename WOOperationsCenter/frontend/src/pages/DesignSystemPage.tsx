@@ -40,47 +40,47 @@ export const DesignSystemPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* 1. Color Palette Tokens */}
+      {/* 1. Viettel Red Brand Color Palette Tokens */}
       <Card
         header={
-          <h3 className="text-sm font-semibold text-foreground">1. Bảng màu &amp; Design Tokens</h3>
+          <h3 className="text-sm font-semibold text-foreground">1. Bảng màu Nhận diện Viettel Enterprise (Design Tokens)</h3>
         }
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-xs">
           <div className="p-3 rounded-lg border border-border bg-surface">
-            <div className="h-10 rounded-md bg-primary mb-2 shadow-xs" />
-            <div className="font-semibold text-foreground">Primary</div>
+            <div className="h-10 rounded-md bg-primary mb-2 shadow-xs flex items-center justify-center text-white font-bold text-xs">#EE0033</div>
+            <div className="font-semibold text-foreground">Viettel Primary</div>
             <div className="text-muted text-[11px]">var(--primary)</div>
           </div>
 
           <div className="p-3 rounded-lg border border-border bg-surface">
-            <div className="h-10 rounded-md bg-background border border-border mb-2" />
-            <div className="font-semibold text-foreground">Background</div>
+            <div className="h-10 rounded-md bg-[#FFF0F3] border border-primary/20 mb-2 flex items-center justify-center text-primary font-bold text-xs">#FFF0F3</div>
+            <div className="font-semibold text-foreground">Primary Subtle</div>
+            <div className="text-muted text-[11px]">var(--primary-subtle)</div>
+          </div>
+
+          <div className="p-3 rounded-lg border border-border bg-surface">
+            <div className="h-10 rounded-md bg-background border border-border mb-2 flex items-center justify-center text-muted font-mono text-[10px]">#F7F8FA</div>
+            <div className="font-semibold text-foreground">Background Canvas</div>
             <div className="text-muted text-[11px]">var(--background)</div>
           </div>
 
           <div className="p-3 rounded-lg border border-border bg-surface">
-            <div className="h-10 rounded-md bg-surface border border-border-strong mb-2" />
-            <div className="font-semibold text-foreground">Surface</div>
+            <div className="h-10 rounded-md bg-surface border border-border-strong mb-2 flex items-center justify-center text-muted font-mono text-[10px]">#FFFFFF</div>
+            <div className="font-semibold text-foreground">Surface Card</div>
             <div className="text-muted text-[11px]">var(--surface)</div>
           </div>
 
           <div className="p-3 rounded-lg border border-border bg-surface">
-            <div className="h-10 rounded-md bg-danger mb-2" />
-            <div className="font-semibold text-danger">Danger</div>
-            <div className="text-muted text-[11px]">#DC2626</div>
+            <div className="h-10 rounded-md bg-success mb-2 flex items-center justify-center text-white font-bold text-xs">#10B981</div>
+            <div className="font-semibold text-success">Success Progress</div>
+            <div className="text-muted text-[11px]">var(--success)</div>
           </div>
 
           <div className="p-3 rounded-lg border border-border bg-surface">
-            <div className="h-10 rounded-md bg-success mb-2" />
-            <div className="font-semibold text-success">Success</div>
-            <div className="text-muted text-[11px]">#16A34A</div>
-          </div>
-
-          <div className="p-3 rounded-lg border border-border bg-surface">
-            <div className="h-10 rounded-md bg-warning mb-2" />
-            <div className="font-semibold text-warning">Warning</div>
-            <div className="text-muted text-[11px]">#D97706</div>
+            <div className="h-10 rounded-md bg-warning mb-2 flex items-center justify-center text-white font-bold text-xs">#F59E0B</div>
+            <div className="font-semibold text-warning">Warning 30N</div>
+            <div className="text-muted text-[11px]">var(--warning)</div>
           </div>
         </div>
       </Card>

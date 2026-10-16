@@ -95,12 +95,91 @@ class ClipboardEngine:
 
         return False
 
+    @classmethod
+    def set_image_clipboard(cls, image_bytes: bytes) -> bool:
+        """Sets raw image bytes (PNG, BMP, JPG) directly onto the system clipboard."""
+        try:
+            from PySide6.QtGui import QGuiApplication, QImage, QClipboard
+            app = QGuiApplication.instance()
+            if app:
+                image = QImage()
+                if image.loadFromData(image_bytes, "PNG") or image.loadFromData(image_bytes):
+                    clipboard = QGuiApplication.clipboard()
+                    clipboard.setImage(image)
+                    return True
+        except Exception as e:
+            logger.error(f"PySide6 set_image_clipboard error: {e}")
+
+        # Win32 DIB injection fallback
+        if sys.platform == "win32":
+            try:
+                import io
+                from PIL import Image
+                img = Image.open(io.BytesIO(image_bytes))
+                output = io.BytesIO()
+                img.convert("RGB").save(output, "BMP")
+                data = output.getvalue()[14:]  # Exclude 14-byte BMP header to get pure DIB
+                output.close()
+
+                user32 = ctypes.windll.user32
+                kernel32 = ctypes.windll.kernel32
+
+                kernel32.GlobalAlloc.restype = ctypes.c_void_p
+                kernel32.GlobalAlloc.argtypes = [ctypes.c_uint, ctypes.c_size_t]
+                kernel32.GlobalLock.restype = ctypes.c_void_p
+                kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+                kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+                user32.SetClipboardData.restype = ctypes.c_void_p
+                user32.SetClipboardData.argtypes = [ctypes.c_uint, ctypes.c_void_p]
+                user32.OpenClipboard.argtypes = [ctypes.c_void_p]
+
+                CF_DIB = 8
+                GMEM_MOVEABLE = 0x0002
+
+                if user32.OpenClipboard(None):
+                    user32.EmptyClipboard()
+                    h_mem = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(data))
+                    p_mem = kernel32.GlobalLock(h_mem)
+                    ctypes.memmove(p_mem, data, len(data))
+                    kernel32.GlobalUnlock(h_mem)
+                    user32.SetClipboardData(CF_DIB, h_mem)
+                    user32.CloseClipboard()
+                    return True
+            except Exception as e:
+                logger.error(f"Win32 image clipboard error: {e}")
+
+        return False
+
+    @classmethod
+    def set_image_from_base64(cls, base64_str: str) -> bool:
+        """Decodes a base64 encoded PNG data URI or raw string and copies image to clipboard."""
+        import base64
+        try:
+            if "," in base64_str:
+                base64_str = base64_str.split(",", 1)[1]
+            raw_bytes = base64.b64decode(base64_str)
+            return cls.set_image_clipboard(raw_bytes)
+        except Exception as e:
+            logger.error(f"Error decoding base64 image: {e}")
+            return False
+
     @staticmethod
     def _set_win32_clipboard(text: str, html: Optional[str]) -> bool:
         """Low-level Windows clipboard injection via ctypes."""
         try:
             user32 = ctypes.windll.user32
             kernel32 = ctypes.windll.kernel32
+
+            kernel32.GlobalAlloc.restype = ctypes.c_void_p
+            kernel32.GlobalAlloc.argtypes = [ctypes.c_uint, ctypes.c_size_t]
+            kernel32.GlobalLock.restype = ctypes.c_void_p
+            kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+            kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+            user32.SetClipboardData.restype = ctypes.c_void_p
+            user32.SetClipboardData.argtypes = [ctypes.c_uint, ctypes.c_void_p]
+            user32.OpenClipboard.argtypes = [ctypes.c_void_p]
+            user32.RegisterClipboardFormatW.argtypes = [ctypes.c_wchar_p]
+            user32.RegisterClipboardFormatW.restype = ctypes.c_uint
 
             GMEM_MOVEABLE = 0x0002
             CF_UNICODETEXT = 13

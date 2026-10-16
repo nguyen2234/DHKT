@@ -108,7 +108,8 @@ class ExcelExporter:
         selected_center_codes: Optional[List[str]] = None,
         separate_files: bool = False,
         position_filter: str = "Tất cả",
-        fit_to_page: bool = True
+        fit_to_page: bool = True,
+        custom_filename: Optional[str] = None
     ) -> List[str]:
         """
         Exports Module B: THFT Reports.
@@ -135,6 +136,8 @@ class ExcelExporter:
                 if not center:
                     continue
                 filename = f"BaoCao_THFT_{code}_{date_suffix}{pos_suffix}.xlsx"
+                if len(active_codes) == 1 and custom_filename:
+                    filename = custom_filename
                 target_path = get_unique_output_path(os.path.join(output_dir, filename))
                 temp_path = target_path + ".tmp"
 
@@ -151,7 +154,7 @@ class ExcelExporter:
                 os.replace(temp_path, target_path)
                 exported_paths.append(target_path)
         else:
-            filename = f"BaoCao_THFT_{date_suffix}{pos_suffix}.xlsx"
+            filename = custom_filename or f"BaoCao_THFT_{date_suffix}{pos_suffix}.xlsx"
             target_path = get_unique_output_path(os.path.join(output_dir, filename))
             temp_path = target_path + ".tmp"
 

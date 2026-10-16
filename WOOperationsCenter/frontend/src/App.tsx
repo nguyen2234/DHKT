@@ -14,6 +14,8 @@ import { WOExplorerPage } from "./pages/WOExplorerPage";
 import { CentersPage } from "./pages/CentersPage";
 import { CenterDetailPage } from "./pages/CenterDetailPage";
 import { ReportBuilderPage } from "./pages/ReportBuilderPage";
+import { BatchReportPage } from "./pages/BatchReportPage";
+import { ExcelCopierPage } from "./pages/ExcelCopierPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { DesignSystemPage } from "./pages/DesignSystemPage";
@@ -67,6 +69,10 @@ export const App: React.FC = () => {
         return <CenterDetailPage />;
       case "report-builder":
         return <ReportBuilderPage />;
+      case "batch-report":
+        return <BatchReportPage />;
+      case "excel-copier":
+        return <ExcelCopierPage />;
       case "history":
         return <HistoryPage />;
       case "settings":

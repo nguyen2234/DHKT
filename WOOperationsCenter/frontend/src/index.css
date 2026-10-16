@@ -8,65 +8,69 @@
 :root,
 .force-light {
   color-scheme: light;
-  --app-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --app-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 
-  /* Primary Brand */
-  --primary: #18181b;           /* Sleek near-black */
-  --primary-hover: #27272a;
+  /* Viettel Brand Colors */
+  --primary: #EE0033;           /* Viettel Red Primary */
+  --primary-hover: #C9002B;     /* Viettel Red Hover */
+  --primary-active: #B80028;    /* Viettel Red Active */
   --primary-foreground: #ffffff;
-  --primary-light: #18181b0d;
+  --primary-light: #FFF0F3;     /* Viettel Red Subtle Tint */
+  --primary-subtle: #FFF0F3;
 
-  --background: #f8fafc;        /* Slate-50 clean canvas */
-  --surface: #ffffff;           /* Card & panel surface */
-  --surface-hover: #f1f5f9;
-  --surface-overlay: #ffffff;
-  --foreground: #0f172a;        /* High-contrast slate-900 */
-  --muted: #64748b;             /* Slate-500 */
-  --border: #e2e8f0;            /* Slate-200 clean hairline */
-  --border-strong: #cbd5e1;     /* Slate-300 input & button borders */
-  --tab-rail: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --background: #F7F8FA;        /* Enterprise Canvas Neutral */
+  --surface: #FFFFFF;           /* Card & Panel Surface */
+  --surface-hover: #F1F4F9;
+  --surface-overlay: #FFFFFF;
+  --foreground: #20232B;        /* Primary Text */
+  --muted: #667085;             /* Secondary Text */
+  --border: #E5E7EB;            /* Hairline Border */
+  --border-strong: #D1D5DB;     /* Control Border */
+  --tab-rail: color-mix(in srgb, var(--foreground) 8%, transparent);
 
-  --elevation-popover: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-  --elevation-modal: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.06);
+  --elevation-popover: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --elevation-modal: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.08);
 
-  --item-hover: #f1f5f9;
-  --secondary: #e2e8f0;
-  --secondary-hover: #cbd5e1;
-  --tab-selected: color-mix(in srgb, var(--foreground) 8%, transparent);
-  --button-hover: #e2e8f0;
-  --ring-focus: rgba(24, 24, 27, 0.15);
-  --border-focus: var(--primary);
+  --item-hover: #F3F4F6;
+  --secondary: #E5E7EB;
+  --secondary-hover: #D1D5DB;
+  --tab-selected: #FFF0F3;
+  --button-hover: #FEE2E2;
+  --ring-focus: rgba(238, 0, 51, 0.25);
+  --border-focus: #EE0033;
 
   /* Status Tokens */
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
-  --success: #16a34a;
-  --success-bg: #f0fdf4;
-  --warning: #d97706;
-  --warning-bg: #fffbeb;
-  --info: #0284c7;
-  --info-bg: #f0f9ff;
-  --neutral: #64748b;
-  --neutral-bg: #f1f5f9;
+  --danger: #EE0033;
+  --danger-bg: #FFF0F3;
+  --success: #10B981;
+  --success-bg: #ECFDF5;
+  --warning: #F59E0B;
+  --warning-bg: #FFFBEB;
+  --info: #0284C7;
+  --info-bg: #F0F9FF;
+  --neutral: #64748B;
+  --neutral-bg: #F1F5F9;
 }
 
 .dark,
 .force-dark {
   color-scheme: dark;
 
-  --primary: #f8fafc;
-  --primary-hover: #e2e8f0;
-  --primary-foreground: #090d16;
-  --primary-light: rgba(248, 250, 252, 0.1);
+  --primary: #FF2B57;
+  --primary-hover: #EE0033;
+  --primary-active: #C9002B;
+  --primary-foreground: #FFFFFF;
+  --primary-light: rgba(238, 0, 51, 0.2);
+  --primary-subtle: rgba(238, 0, 51, 0.18);
 
-  --background: #090d16;        /* Deep rich dark blue-slate */
-  --surface: #111827;           /* Slate-900 */
-  --surface-hover: #1e293b;
-  --surface-overlay: #1e293b;
-  --foreground: #f8fafc;
-  --muted: #94a3b8;
-  --border: rgba(148, 163, 184, 0.14);
-  --border-strong: rgba(148, 163, 184, 0.24);
+  --background: #0F1219;        /* Deep enterprise slate */
+  --surface: #181D2A;           /* Card surface */
+  --surface-hover: #22293B;
+  --surface-overlay: #22293B;
+  --foreground: #F3F4F6;
+  --muted: #94A3B8;
+  --border: #273142;
+  --border-strong: #374151;
   --tab-rail: color-mix(in srgb, var(--foreground) 10%, transparent);
 
   --elevation-popover: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
@@ -75,20 +79,20 @@
   --item-hover: rgb(255 255 255 / 0.06);
   --secondary: rgb(255 255 255 / 0.1);
   --secondary-hover: rgb(255 255 255 / 0.15);
-  --tab-selected: color-mix(in srgb, var(--foreground) 10%, transparent);
-  --button-hover: rgb(255 255 255 / 0.1);
-  --ring-focus: rgba(248, 250, 252, 0.2);
-  --border-focus: rgba(248, 250, 252, 0.45);
+  --tab-selected: rgba(238, 0, 51, 0.25);
+  --button-hover: rgba(255, 255, 255, 0.1);
+  --ring-focus: rgba(255, 43, 87, 0.35);
+  --border-focus: rgba(255, 43, 87, 0.65);
 
-  --danger: #f87171;
+  --danger: #F87171;
   --danger-bg: rgba(239, 68, 68, 0.15);
-  --success: #4ade80;
-  --success-bg: rgba(34, 197, 94, 0.15);
-  --warning: #fbbf24;
+  --success: #34D399;
+  --success-bg: rgba(52, 211, 153, 0.15);
+  --warning: #FBBF24;
   --warning-bg: rgba(245, 158, 11, 0.15);
-  --info: #38bdf8;
+  --info: #38BDF8;
   --info-bg: rgba(14, 165, 233, 0.15);
-  --neutral: #94a3b8;
+  --neutral: #94A3B8;
   --neutral-bg: rgba(148, 163, 184, 0.15);
 }
 

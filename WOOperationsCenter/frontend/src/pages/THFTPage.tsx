@@ -4,6 +4,9 @@ import { bridge, EmployeeData } from "../services/bridge";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
+import { ExportModal } from "../components/modals/ExportModal";
+import { CopyModeModal } from "../components/modals/CopyModeModal";
+import { copyFormattedTable, ClipboardCopyMode } from "../services/clipboardHelper";
 import {
   Users,
   Copy,
@@ -26,7 +29,8 @@ export const THFTPage: React.FC = () => {
   const [notification, setNotification] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [tagFormat, setTagFormat] = useState<string>("name");
-  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState<boolean>(false);
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,31 +117,6 @@ export const THFTPage: React.FC = () => {
     }
   };
 
-  const handleExportExcel = async (separate: boolean) => {
-    if (!dataset) return;
-    setIsExporting(true);
-    try {
-      const res = await bridge.exportReport("thft_excel", {
-        position_filter: positionFilter,
-        separate_files: separate,
-        selected_centers: [selectedCenter]
-      });
-      if (res.success) {
-        addToast({
-          type: "success",
-          title: "Xuất Excel thành công",
-          message: `Đã xuất báo cáo tại: ${res.output_paths ? res.output_paths.join(", ") : res.output_path}`
-        });
-      } else {
-        throw new Error(res.error || "Không thể xuất file");
-      }
-    } catch (err: any) {
-      addToast({ type: "error", title: "Lỗi xuất Excel", message: err.message });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   if (!dataset) {
     return (
       <div className="py-16 text-center max-w-md mx-auto">
@@ -201,7 +180,7 @@ export const THFTPage: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleCopyNotif}
-            icon={copiedType === "notif" ? <Check className="w-4 h-4 text-success" /> : <Tag className="w-4 h-4" />}
+            icon={copiedType === "notif" ? <Check className="w-4 h-4 text-success" /> : <Tag className="w-4 h-4 text-primary" />}
           >
             Copy Thông báo + TAG
           </Button>
@@ -209,9 +188,8 @@ export const THFTPage: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleExportExcel(false)}
-            isLoading={isExporting}
-            icon={<Download className="w-4 h-4" />}
+            onClick={() => setIsExportModalOpen(true)}
+            icon={<Download className="w-4 h-4 text-primary" />}
           >
             Xuất Excel Huyện
           </Button>
@@ -405,6 +383,14 @@ export const THFTPage: React.FC = () => {
           </table>
         </div>
       </Card>
+
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        reportType="thft_excel"
+        centerCode={selectedCenter}
+        positionFilter={positionFilter}
+      />
     </div>
   );
 };

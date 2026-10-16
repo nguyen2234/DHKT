@@ -10,6 +10,8 @@ export type AppRoute =
   | "centers"
   | "center-detail"
   | "report-builder"
+  | "batch-report"
+  | "excel-copier"
   | "history"
   | "settings"
   | "design-system";

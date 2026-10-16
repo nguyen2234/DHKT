@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAppStore } from "../stores/appStore";
+import { CenterDetailPage } from "./CenterDetailPage";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
@@ -12,11 +13,13 @@ import {
   CheckCircle2,
   ArrowRight,
   Search,
-  Filter
+  LayoutGrid,
+  FileSpreadsheet
 } from "lucide-react";
 
 export const CentersPage: React.FC = () => {
-  const { dataset, setCurrentRoute } = useAppStore();
+  const { dataset, setSelectedCenterCode, setCurrentRoute } = useAppStore();
+  const [viewMode, setViewMode] = useState<"workspace" | "grid">("workspace");
   const [search, setSearch] = useState("");
 
   if (!dataset) {
@@ -28,6 +31,27 @@ export const CentersPage: React.FC = () => {
         <div className="mt-4">
           <Button onClick={() => setCurrentRoute("import")}>Đến trang Nhập dữ liệu</Button>
         </div>
+      </div>
+    );
+  }
+
+  // If in workspace mode, render the CenterDetailPage workspace directly with full features
+  if (viewMode === "workspace") {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-muted">
+            Đang hiển thị không gian báo cáo chi tiết từng huyện
+          </div>
+          <button
+            onClick={() => setViewMode("grid")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-surface text-xs font-semibold text-foreground hover:bg-item-hover transition-colors cursor-pointer"
+          >
+            <LayoutGrid className="w-3.5 h-3.5 text-primary" />
+            <span>Xem lưới tổng quan 14 huyện</span>
+          </button>
+        </div>
+        <CenterDetailPage />
       </div>
     );
   }
@@ -44,15 +68,28 @@ export const CentersPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
+              Viettel Operations — NAN_DHKT
+            </span>
+          </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Quản lý Trung tâm Huyện (Module D)
+            Danh sách 14 Trung tâm Huyện
           </h1>
           <p className="text-xs text-muted mt-1">
-            Phát hiện động <span className="font-semibold text-foreground">{dataset.centers.length}</span> trung tâm trong kỳ báo cáo ngày {dataset.report_date_str}
+            Dữ liệu trích xuất theo kỳ báo cáo ngày {dataset.report_date_str}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setViewMode("workspace")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary-hover transition-colors cursor-pointer shadow-xs"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>Vào không gian làm việc huyện</span>
+          </button>
+
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-muted absolute left-3 top-2.5" />
             <input
@@ -71,8 +108,11 @@ export const CentersPage: React.FC = () => {
         {filteredCenters.map((c) => (
           <div
             key={c.code}
-            onClick={() => setCurrentRoute("center-detail", c.code)}
-            className="bg-surface border border-border rounded-xl p-5 hover:border-foreground/30 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between group"
+            onClick={() => {
+              setSelectedCenterCode(c.code);
+              setViewMode("workspace");
+            }}
+            className="bg-surface border border-border rounded-xl p-5 hover:border-primary/40 hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between group"
           >
             <div>
               {/* Card Header */}
@@ -131,8 +171,8 @@ export const CentersPage: React.FC = () => {
             </div>
 
             {/* Action link */}
-            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-medium text-primary">
-              <span>Mở không gian làm việc</span>
+            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-semibold text-primary">
+              <span>Mở không gian gửi TAMMI</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>

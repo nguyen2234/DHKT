@@ -16,63 +16,93 @@ import {
   ShieldCheck
 } from "lucide-react";
 
+interface NavGroup {
+  title: string;
+  items: {
+    route: AppRoute;
+    label: string;
+    icon: React.ReactNode;
+    badge?: string | number;
+  }[];
+}
+
 export const Sidebar: React.FC = () => {
   const { currentRoute, setCurrentRoute, sidebarCollapsed, toggleSidebar, dataset } = useAppStore();
 
-  const navItems: { route: AppRoute; label: string; icon: React.ReactNode; badge?: string | number }[] = [
+  const navGroups: NavGroup[] = [
     {
-      route: "dashboard",
-      label: "Tổng quan",
-      icon: <LayoutDashboard className="w-4 h-4" />
+      title: "NHÓM BÁO CÁO",
+      items: [
+        {
+          route: "dashboard",
+          label: "Tổng quan",
+          icon: <LayoutDashboard className="w-4 h-4" />
+        },
+        {
+          route: "wo-executive",
+          label: "Báo cáo toàn tỉnh",
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          route: "centers",
+          label: "Báo cáo TT huyện",
+          icon: <Building2 className="w-4 h-4" />,
+          badge: dataset ? dataset.centers.length : undefined
+        },
+        {
+          route: "report-builder",
+          label: "Soạn thông báo",
+          icon: <Send className="w-4 h-4" />
+        },
+        {
+          route: "batch-report",
+          label: "Báo cáo hàng loạt",
+          icon: <FileSpreadsheet className="w-4 h-4" />
+        }
+      ]
     },
     {
-      route: "import",
-      label: "Nhập dữ liệu",
-      icon: <FileSpreadsheet className="w-4 h-4" />,
-      badge: dataset ? "Đã nạp" : undefined
+      title: "NHÓM DỮ LIỆU",
+      items: [
+        {
+          route: "import",
+          label: "Nhập Excel",
+          icon: <FileSpreadsheet className="w-4 h-4" />,
+          badge: dataset ? "Đã nạp" : undefined
+        },
+        {
+          route: "wo-explorer",
+          label: "Danh sách WO",
+          icon: <Briefcase className="w-4 h-4" />,
+          badge: dataset ? dataset.total_work_orders : undefined
+        },
+        {
+          route: "thft",
+          label: "Nhân viên FT",
+          icon: <Users className="w-4 h-4" />,
+          badge: dataset ? dataset.total_tagged : undefined
+        },
+        {
+          route: "excel-copier",
+          label: "Copy bảng Excel",
+          icon: <FileText className="w-4 h-4" />
+        }
+      ]
     },
     {
-      route: "wo-executive",
-      label: "Báo cáo điều hành WO",
-      icon: <FileText className="w-4 h-4" />
-    },
-    {
-      route: "thft",
-      label: "Báo cáo nhân viên FT",
-      icon: <Users className="w-4 h-4" />,
-      badge: dataset ? dataset.total_tagged : undefined
-    },
-    {
-      route: "wo-explorer",
-      label: "Danh sách công việc WO",
-      icon: <Briefcase className="w-4 h-4" />,
-      badge: dataset ? dataset.total_work_orders : undefined
-    },
-    {
-      route: "centers",
-      label: "Trung tâm huyện",
-      icon: <Building2 className="w-4 h-4" />,
-      badge: dataset ? dataset.centers.length : undefined
-    },
-    {
-      route: "report-builder",
-      label: "Soạn thông báo",
-      icon: <Send className="w-4 h-4" />
-    },
-    {
-      route: "history",
-      label: "Lịch sử báo cáo",
-      icon: <History className="w-4 h-4" />
-    },
-    {
-      route: "settings",
-      label: "Cài đặt",
-      icon: <Settings className="w-4 h-4" />
-    },
-    {
-      route: "design-system",
-      label: "Thư viện thiết kế",
-      icon: <Palette className="w-4 h-4" />
+      title: "HỆ THỐNG",
+      items: [
+        {
+          route: "history",
+          label: "Lịch sử báo cáo",
+          icon: <History className="w-4 h-4" />
+        },
+        {
+          route: "settings",
+          label: "Cài đặt",
+          icon: <Settings className="w-4 h-4" />
+        }
+      ]
     }
   ];
 
@@ -90,8 +120,9 @@ export const Sidebar: React.FC = () => {
           </div>
           {!sidebarCollapsed && (
             <div className="min-w-0">
-              <div className="font-bold text-sm text-foreground tracking-tight truncate">
+              <div className="font-bold text-sm text-foreground tracking-tight truncate flex items-center gap-1.5">
                 WO Operations
+                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Viettel</span>
               </div>
               <div className="text-[11px] text-muted truncate">Phòng VHKT — NAN_DHKT</div>
             </div>
@@ -108,40 +139,49 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation List */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = currentRoute === item.route;
-          return (
-            <button
-              key={item.route}
-              onClick={() => setCurrentRoute(item.route)}
-              title={sidebarCollapsed ? item.label : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "text-muted hover:text-foreground hover:bg-item-hover"
-              } ${sidebarCollapsed ? "justify-center" : ""}`}
-            >
-              <span className="shrink-0">{item.icon}</span>
-              {!sidebarCollapsed && (
-                <>
-                  <span className="truncate flex-1 text-left">{item.label}</span>
-                  {item.badge !== undefined && (
-                    <span
-                      className={`text-[11px] px-1.5 py-0.2 rounded-full font-semibold ${
-                        isActive
-                          ? "bg-primary-foreground/20 text-primary-foreground"
-                          : "bg-secondary text-muted"
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
+      <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+        {navGroups.map((group, gIdx) => (
+          <div key={gIdx} className="space-y-1">
+            {!sidebarCollapsed && (
+              <div className="px-3 py-1 text-[10px] font-bold text-muted uppercase tracking-wider">
+                {group.title}
+              </div>
+            )}
+            {group.items.map((item) => {
+              const isActive = currentRoute === item.route;
+              return (
+                <button
+                  key={item.route}
+                  onClick={() => setCurrentRoute(item.route)}
+                  title={sidebarCollapsed ? item.label : undefined}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                      : "text-muted hover:text-foreground hover:bg-item-hover"
+                  } ${sidebarCollapsed ? "justify-center" : ""}`}
+                >
+                  <span className="shrink-0">{item.icon}</span>
+                  {!sidebarCollapsed && (
+                    <>
+                      <span className="truncate flex-1 text-left">{item.label}</span>
+                      {item.badge !== undefined && (
+                        <span
+                          className={`text-[11px] px-1.5 py-0.2 rounded-full font-semibold ${
+                            isActive
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : "bg-secondary text-muted"
+                          }`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </button>
-          );
-        })}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Dataset Status Footer */}

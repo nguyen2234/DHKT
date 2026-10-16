@@ -14,6 +14,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtWidgets import QFileDialog
 
 from backend.clipboard.clipboard_engine import ClipboardEngine
+from backend.clipboard.excel_range_copier import ExcelRangeCopier
 from backend.core.config import ConfigManager, get_app_data_dir
 from backend.database.repository import DatabaseRepository
 from backend.domain.models import ReportDataset, ReportHistoryItem
@@ -61,9 +62,11 @@ class APIBridge(QObject):
     @Slot(result=str)
     def pickDirectory(self) -> str:
         """Opens native Windows directory chooser."""
+        initial_dir = self.config_mgr.get("default_output_dir", "")
         folder = QFileDialog.getExistingDirectory(
             None,
-            "Chọn thư mục lưu báo cáo"
+            "Chọn thư mục lưu báo cáo",
+            initial_dir if (initial_dir and os.path.isdir(initial_dir)) else ""
         )
         return folder or ""
 
@@ -363,6 +366,96 @@ class APIBridge(QObject):
             logger.error(f"Clipboard error: {e}")
             return False
 
+    @Slot(str, str, result=bool)
+    def copyCustomHtmlAndText(self, text: str, html: str) -> bool:
+        """Sets custom plain text and styled HTML to system clipboard."""
+        try:
+            return ClipboardEngine.set_system_clipboard(text, html)
+        except Exception as e:
+            logger.error(f"Error copying custom html: {e}")
+            return False
+
+    @Slot(str, result=bool)
+    def copyImageFromBase64(self, base64_str: str) -> bool:
+        """Copies a base64 encoded PNG image directly to system clipboard as image."""
+        try:
+            return ClipboardEngine.set_image_from_base64(base64_str)
+        except Exception as e:
+            logger.error(f"Error copying image from base64: {e}")
+            return False
+
+    # ==========================================
+    # EXCEL RANGE COPIER (DIRECT FROM FILE)
+    # ==========================================
+
+    @Slot(str, result=str)
+    def getExcelSheetNames(self, file_path: str) -> str:
+        """Returns JSON array of worksheet names for a given Excel file."""
+        try:
+            if not file_path or not os.path.exists(file_path):
+                return json.dumps({"success": False, "error": "Tệp không tồn tại", "sheets": []})
+            sheets = ExcelRangeCopier.get_sheet_names(file_path)
+            return json.dumps({"success": True, "sheets": sheets}, ensure_ascii=False)
+        except Exception as e:
+            logger.error(f"getExcelSheetNames error: {e}")
+            return json.dumps({"success": False, "error": str(e), "sheets": []})
+
+    @Slot(str, str, str, result=str)
+    def parseExcelRange(self, file_path: str, sheet_name: str, range_str: str) -> str:
+        """Parses an Excel range from file and returns preview data and HTML/TSV representations."""
+        try:
+            if not file_path or not os.path.exists(file_path):
+                return json.dumps({"success": False, "error": "Tệp không tồn tại"})
+            data = ExcelRangeCopier.parse_range(file_path, sheet_name, range_str)
+            return json.dumps({"success": True, "data": data}, ensure_ascii=False)
+        except Exception as e:
+            logger.error(f"parseExcelRange error: {e}")
+            return json.dumps({"success": False, "error": str(e)})
+
+    @Slot(str, str, str, str, result=bool)
+    def copyExcelRange(self, file_path: str, sheet_name: str, range_str: str, copy_mode: str) -> bool:
+        """Copies specified Excel range to clipboard in html/tsv/text mode."""
+        try:
+            if not file_path or not os.path.exists(file_path):
+                return False
+            return ExcelRangeCopier.copy_range_to_clipboard(file_path, sheet_name, range_str, copy_mode)
+        except Exception as e:
+            logger.error(f"copyExcelRange error: {e}")
+            return False
+
+    # ==========================================
+    # OPEN FILE & DIRECTORY SLOTS
+    # ==========================================
+
+    @Slot(str, result=bool)
+    def openFile(self, file_path: str) -> bool:
+        """Opens a file using Windows default associated program."""
+        try:
+            if file_path and os.path.exists(file_path):
+                os.startfile(file_path)
+                return True
+        except Exception as e:
+            logger.error(f"Failed to open file {file_path}: {e}")
+        return False
+
+    @Slot(str, result=bool)
+    def openFolder(self, folder_path: str) -> bool:
+        """Opens folder in Windows Explorer or highlights file if file path."""
+        try:
+            if not folder_path:
+                return False
+            norm_path = os.path.normpath(folder_path)
+            if os.path.isfile(norm_path):
+                import subprocess
+                subprocess.Popen(f'explorer /select,"{norm_path}"')
+                return True
+            elif os.path.isdir(norm_path):
+                os.startfile(norm_path)
+                return True
+        except Exception as e:
+            logger.error(f"Failed to open folder {folder_path}: {e}")
+        return False
+
     # ==========================================
     # EXPORT ACTIONS
     # ==========================================
@@ -380,7 +473,20 @@ class APIBridge(QObject):
 
         try:
             params = json.loads(params_json) if params_json else {}
-            output_dir = params.get("output_dir") or self.config_mgr.get("default_output_dir")
+            output_dir = params.get("output_dir") or self.config_mgr.get("default_output_dir") or "C:\\Reports"
+            custom_filename = params.get("custom_filename")
+            auto_open_file = params.get("auto_open_file", False)
+            auto_open_folder = params.get("auto_open_folder", False)
+            remember_dir = params.get("remember_dir", False)
+
+            # Validate and create output directory
+            try:
+                os.makedirs(output_dir, exist_ok=True)
+            except Exception as e:
+                return json.dumps({"success": False, "error": f"Không thể tạo thư mục lưu '{output_dir}': {e}"})
+
+            if remember_dir:
+                self.config_mgr.set("default_output_dir", output_dir)
 
             if export_type == "executive_excel":
                 preview_text = params.get("preview_text", "")
@@ -389,7 +495,8 @@ class APIBridge(QObject):
                     self.current_dataset.province_summary,
                     centers_list,
                     output_dir,
-                    preview_text=preview_text
+                    preview_text=preview_text,
+                    custom_filename=custom_filename
                 )
 
                 # Save history
@@ -407,6 +514,11 @@ class APIBridge(QObject):
                 ))
 
                 self.exportFinished.emit(out_path)
+                if auto_open_file:
+                    self.openFile(out_path)
+                elif auto_open_folder:
+                    self.openFolder(output_dir)
+
                 return json.dumps({"success": True, "output_path": out_path})
 
             elif export_type == "thft_excel":
@@ -436,7 +548,8 @@ class APIBridge(QObject):
                     output_dir,
                     selected_center_codes=selected_centers,
                     separate_files=separate,
-                    position_filter=pos_filter
+                    position_filter=pos_filter,
+                    custom_filename=custom_filename
                 )
 
                 # Save history
@@ -455,7 +568,12 @@ class APIBridge(QObject):
                     ))
 
                 self.exportFinished.emit(", ".join(out_paths))
-                return json.dumps({"success": True, "output_paths": out_paths})
+                if auto_open_file and out_paths:
+                    self.openFile(out_paths[0])
+                elif auto_open_folder:
+                    self.openFolder(output_dir)
+
+                return json.dumps({"success": True, "output_paths": out_paths, "output_path": out_paths[0] if out_paths else ""})
 
             elif export_type == "center_docx":
                 center_code = params.get("center_code")
@@ -464,13 +582,24 @@ class APIBridge(QObject):
                     return json.dumps({"success": False, "error": f"Không tìm thấy huyện {center_code}"})
 
                 notification = params.get("notification", "")
-                out_path = os.path.join(output_dir, f"BaoCao_FT_{center_code}_{self.current_dataset.report_date_str.replace('/', '')}.docx")
+                filename = custom_filename or f"BaoCao_FT_{center_code}_{self.current_dataset.report_date_str.replace('/', '')}.docx"
+                out_path = os.path.join(output_dir, filename)
                 DocxExporter.export_center_report_docx(center, notification, out_path)
 
                 self.exportFinished.emit(out_path)
+                if auto_open_file:
+                    self.openFile(out_path)
+                elif auto_open_folder:
+                    self.openFolder(output_dir)
+
                 return json.dumps({"success": True, "output_path": out_path})
 
             return json.dumps({"success": False, "error": "Loại xuất không hợp lệ"})
+        except PermissionError:
+            return json.dumps({
+                "success": False,
+                "error": "Tệp đang bị khóa hoặc đang mở trong ứng dụng khác (ví dụ: Microsoft Excel). Vui lòng đóng tệp trước khi xuất lại!"
+            })
         except Exception as e:
             logger.exception("Export error:")
             return json.dumps({"success": False, "error": str(e)})
