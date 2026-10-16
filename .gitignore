@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build outputs
+build/
+dist/
+dist_installer/
+test_output/
+*.spec.bak
+
+# Binaries & Archives
+*.exe
+*.zip
+*.msi
+
+# Environments & IDEs
+.env
+.venv
+env/
+venv/
+.idea/
+.vscode/
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store

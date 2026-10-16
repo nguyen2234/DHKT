@@ -1,0 +1,28 @@
+{
+    "recipient": "Kính gửi PGĐ @NAN PGĐ A THẮNG , TP @A Sơnpb1 TPKT NAN , TTH!",
+    "notification": "Đóng Wo quá hạn trước 30/9.\nĐóng hết wo tháng 9 xong trước 05/10.",
+    "deadline_qh": "30/09",
+    "deadline_month": "05/10",
+    "last_output_directory": "",
+    "window_width": 1150,
+    "window_height": 780,
+    "excel_mapping": {
+        "sheet_name": "TH TTH",
+        "summary_row": 3,
+        "data_start_row": 4,
+        "columns": {
+            "center_name": 1,
+            "tong_ton": 17,
+            "ton_qua_han": 18,
+            "ton_30_ngay": 19,
+            "thuc_hien_ngay": 20,
+            "kh_ngay": 21,
+            "danh_gia": 22,
+            "hop_ngay": 23,
+            "ty_le_ht_ngay": 24,
+            "deadline_date": 25,
+            "days_left": 26,
+            "today_day": 27
+        }
+    }
+}
