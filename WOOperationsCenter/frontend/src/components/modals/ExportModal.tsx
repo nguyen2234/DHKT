@@ -33,8 +33,32 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 }) => {
   const { dataset, addToast } = useAppStore();
 
+  const computeDefaultFilename = () => {
+    const dateStr = dataset?.report_date_str?.replace(/\//g, "") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
+
+    let posSuffix = "";
+    const pUpper = (positionFilter || "").toUpperCase();
+    if (pUpper.includes("DM")) {
+      posSuffix = "_NVDM";
+    } else if (pUpper.includes("TRẠM") || pUpper.includes("TRAM")) {
+      posSuffix = "_NVNhaTram";
+    }
+
+    if (reportType === "executive_excel") {
+      return `BaoCao_WO_${dateStr}.xlsx`;
+    } else if (reportType === "center_docx" && centerCode) {
+      return `BaoCao_FT_${centerCode}_${dateStr}.docx`;
+    } else {
+      if (centerCode && centerCode !== "ALL") {
+        return `BaoCao_THFT_${centerCode}_${dateStr}${posSuffix}.xlsx`;
+      } else {
+        return `BaoCao_THFT_${dateStr}${posSuffix}.xlsx`;
+      }
+    }
+  };
+
   const [outputDir, setOutputDir] = useState("C:\\Reports");
-  const [filename, setFilename] = useState("");
+  const [filename, setFilename] = useState(computeDefaultFilename);
   const [rememberDir, setRememberDir] = useState(true);
   const [autoOpenFile, setAutoOpenFile] = useState(true);
   const [autoOpenFolder, setAutoOpenFolder] = useState(false);
@@ -46,42 +70,23 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     error?: string;
   } | null>(null);
 
-  // Generate suggested filename based on parameters and current date
+  // Synchronize on modal open without flickering
   useEffect(() => {
     if (!isOpen) {
       setExportResult(null);
       return;
     }
 
-    // Load saved default directory from config
+    // Set suggested filename immediately
+    setFilename(computeDefaultFilename());
+
+    // Load saved default directory from config silently
     bridge.getAppConfig().then((cfg) => {
       if (cfg && cfg.default_output_dir) {
         setOutputDir(cfg.default_output_dir);
       }
-    });
-
-    const dateStr = dataset?.report_date_str?.replace(/\//g, "") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
-
-    let posSuffix = "";
-    const pUpper = positionFilter.toUpperCase();
-    if (pUpper.includes("DM")) {
-      posSuffix = "_NVDM";
-    } else if (pUpper.includes("TRẠM") || pUpper.includes("TRAM")) {
-      posSuffix = "_NVNhaTram";
-    }
-
-    if (reportType === "executive_excel") {
-      setFilename(`BaoCao_WO_${dateStr}.xlsx`);
-    } else if (reportType === "center_docx" && centerCode) {
-      setFilename(`BaoCao_FT_${centerCode}_${dateStr}.docx`);
-    } else {
-      if (centerCode && centerCode !== "ALL") {
-        setFilename(`BaoCao_THFT_${centerCode}_${dateStr}${posSuffix}.xlsx`);
-      } else {
-        setFilename(`BaoCao_THFT_${dateStr}${posSuffix}.xlsx`);
-      }
-    }
-  }, [isOpen, reportType, centerCode, positionFilter, dataset]);
+    }).catch(() => {});
+  }, [isOpen]);
 
   const handlePickDirectory = async () => {
     try {

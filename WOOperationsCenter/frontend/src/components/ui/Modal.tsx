@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 export interface ModalProps {
@@ -9,6 +10,7 @@ export interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   size?: "sm" | "md" | "lg" | "xl" | "full";
+  closeOnBackdropClick?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -18,16 +20,34 @@ export const Modal: React.FC<ModalProps> = ({
   description,
   children,
   footer,
-  size = "md"
+  size = "md",
+  closeOnBackdropClick = true
 }) => {
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+      if (e.key === "Escape") {
         onClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    // Prevent body scroll and preserve scrollbar width to stop horizontal layout shift
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+    }
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -40,10 +60,20 @@ export const Modal: React.FC<ModalProps> = ({
     full: "max-w-[95vw] h-[90vh]"
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+  const modalNode = (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 modal-backdrop-animate select-none"
+      onClick={(e) => {
+        if (closeOnBackdropClick && e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+    >
       <div
-        className={`bg-surface border border-border shadow-2xl rounded-2xl w-full ${sizeClasses[size]} flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150`}
+        onClick={(e) => e.stopPropagation()}
+        className={`bg-surface border border-border shadow-modal rounded-2xl w-full ${sizeClasses[size]} flex flex-col max-h-[90vh] overflow-hidden modal-card-animate select-text`}
       >
         <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
@@ -52,6 +82,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            type="button"
             className="p-1.5 text-muted hover:text-foreground hover:bg-item-hover rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -68,4 +99,7 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalNode, document.body) : null;
 };
+
